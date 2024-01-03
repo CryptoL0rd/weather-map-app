@@ -39,6 +39,25 @@ body {
     align-items: center;
 }
 
+.api-key-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.status-indicator {
+    font-size: 1.2rem;
+}
+
+.status-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
 #apiKeyInput {
     padding: 0.5rem;
     border: 1px solid #ddd;

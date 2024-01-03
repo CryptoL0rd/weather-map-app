@@ -68,6 +68,7 @@ class WeatherMapApp {
             this.apiKey = key;
             localStorage.setItem('weatherApiKey', key);
             this.showNotification('API Key saved successfully!');
+            this.updateUI(); // Refresh UI to enable weather features
         } else {
             this.showError('Please enter a valid API key');
         }
@@ -81,11 +82,6 @@ class WeatherMapApp {
     }
 
     async handleMapClick(e) {
-        if (!this.apiKey) {
-            this.showError('Please enter your OpenWeatherMap API key first');
-            return;
-        }
-
         const { lat, lng } = e.latlng;
         
         // Clear previous marker
@@ -96,14 +92,23 @@ class WeatherMapApp {
         // Add new marker
         this.marker = L.marker([lat, lng])
             .addTo(this.map)
-            .bindPopup('Loading weather data...')
+            .bindPopup(`Coordinates: ${lat.toFixed(4)}, ${lng.toFixed(4)}`)
             .openPopup();
+
+        if (!this.apiKey) {
+            // Show coordinates and message about missing API key
+            this.updateWeatherDisplay(null, true);
+            return;
+        }
+
+        // Update popup to show loading message
+        this.marker.setPopupContent('Loading weather data...');
 
         try {
             this.showLoading();
             const weatherData = await this.fetchWeatherData(lat, lng);
             this.currentWeatherData = weatherData;
-            this.updateWeatherDisplay(weatherData);
+            this.updateWeatherDisplay(weatherData, false);
             this.updateMarkerPopup(weatherData);
             this.hideLoading();
         } catch (error) {
@@ -129,8 +134,20 @@ class WeatherMapApp {
         return await response.json();
     }
 
-    updateWeatherDisplay(weatherData) {
+    updateWeatherDisplay(weatherData, noApiKey = false) {
         const weatherInfo = document.getElementById('weatherInfo');
+        
+        if (noApiKey) {
+            weatherInfo.innerHTML = `
+                <div class="weather-card">
+                    <h3>Weather Data Unavailable</h3>
+                    <p>Weather data requires an OpenWeatherMap API key.</p>
+                    <p>Please enter your API key in the header to enable weather features.</p>
+                    <p><em>Coordinates are still available when clicking on the map.</em></p>
+                </div>
+            `;
+            return;
+        }
         
         if (!weatherData || !weatherData.current) {
             weatherInfo.innerHTML = '<p class="placeholder">No weather data available</p>';
@@ -258,6 +275,30 @@ class WeatherMapApp {
     updateUI() {
         const hasApiKey = !!this.apiKey;
         document.getElementById('apiKeyInput').value = this.apiKey || '';
+        
+        // Update API key status indicator
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.querySelector('.status-text');
+        
+        if (hasApiKey) {
+            statusIndicator.textContent = '✅';
+            statusText.textContent = 'Weather features enabled';
+        } else {
+            statusIndicator.textContent = '⚠️';
+            statusText.textContent = 'Weather features disabled - API key required';
+        }
+        
+        // Update weather panel based on API key status
+        if (!hasApiKey) {
+            this.updateWeatherDisplay(null, true);
+        } else {
+            // If we have weather data, refresh it with the new API key
+            if (this.currentWeatherData) {
+                this.updateWeatherDisplay(this.currentWeatherData, false);
+            } else {
+                document.getElementById('weatherInfo').innerHTML = '<p class="placeholder">Click anywhere on the map to get weather data</p>';
+            }
+        }
     }
 }
 

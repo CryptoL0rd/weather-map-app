@@ -19,6 +19,10 @@
         <header class="header">
             <h1>Interactive Weather Map</h1>
             <div class="api-key-section">
+                <div class="api-key-status" id="apiKeyStatus">
+                    <span class="status-indicator" id="statusIndicator">⚠️</span>
+                    <span class="status-text">Weather features disabled - API key required</span>
+                </div>
                 <input type="text" id="apiKeyInput" placeholder="Enter OpenWeatherMap API Key" />
                 <button id="saveApiKey">Save API Key</button>
                 <button id="clearApiKey">Clear</button>
